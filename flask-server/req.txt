@@ -1,0 +1,6 @@
+flask
+scipy
+flask_cors
+psycopg2
+python-dotenv
+Flask-JWT-Extended
