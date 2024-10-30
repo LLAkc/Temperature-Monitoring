@@ -1,0 +1,74 @@
+/* Dark-themed navbar styling */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #222;  /* Dark background */
+  padding: 15px 30px;
+  font-family: Arial, sans-serif;
+  position: fixed;
+  top: 0;           /* Pin to the top of the page */
+  width: 100%;      /* Make it span the entire width of the page */
+  z-index: 100; 
+}
+
+/* Left-aligned links */
+.nav-left {
+  display: flex;
+}
+
+.nav-right {
+  display: flex;
+}
+
+/* Shared styling for links */
+.nav-links {
+  display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li {
+  margin-right: 20px;  /* Space between links */
+}
+
+.nav-links a {
+  color: #aaa;  /* Light gray color for inactive links */
+  text-decoration: none;
+  font-size: 1.1rem;
+  transition: color 0.3s;
+}
+
+/* Highlight the active page with brighter color */
+.nav-links a.active {
+  color: #fff;  /* Bright white for active page */
+}
+
+/* Add hover effect for inactive links */
+.nav-links a:hover {
+  color: #ddd;
+}
+
+/* Right-aligned company name */
+
+
+.logout-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 4px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+.logout-button:hover {
+  background-color: #d32f2f;
+}
+
+.company-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff; 
+}

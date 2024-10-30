@@ -1,0 +1,27 @@
+/* Remove margin and padding from the body and html */
+html, body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Ensure all elements inherit the box-sizing property */
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Ensure all page content spans the entire screen width and height */
+.App {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Full viewport height */
+  width: 100vw;      /* Full viewport width */
+  overflow: hidden;  /* Prevent extra scrolling */
+}
+
+
