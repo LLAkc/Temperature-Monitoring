@@ -5,7 +5,7 @@ from flask_cors import CORS
 import psycopg2
 from werkzeug.security import generate_password_hash, check_password_hash  # For hashing passwords
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity  # JWT handling
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -77,9 +77,19 @@ def get_dem_data():
         #values in database
         conn = connect_db()
         cur = conn.cursor()
+        start_time = datetime.combine(datetime.today(), datetime.min.time())
+        '''
+        for i in range(24 * 60):  # 1440 minutes in a day
+            x =  round(np.random.uniform(low=20.0, high=30.0),2)
+            timestamp = start_time + timedelta(minutes=i)'''
+            
+        
+            
+        
         cur.execute('''SELECT servers.name, tempOBS.temperature, 
                     tempOBS.time FROM servers JOIN tempOBS on servers.id = tempOBS.server_id''')
         tempValues = cur.fetchone()
+        conn.commit()
         cur.close()
         conn.close()
         print(tempValues[1])
@@ -90,8 +100,9 @@ def get_dem_data():
         x, y = np.meshgrid(x, y)
         z = np.ones([11, 11]) 
         
-                
+        
 
+        
 
         #z[2,8] = 20
         #z[8,2] = 20
@@ -125,18 +136,74 @@ def get_dem_data():
 @app.route("/chart" , methods = ['GET'])
 @jwt_required()
 def Chart():
-    return jsonify({
-        'Temperature1':23,
-        'Temperature2':27,
-        'Humidity1':33,
-        'Humidity2':38
-    })
+    conn = connect_db()
+    cur = conn.cursor()
+
+    # Get the date from the query parameter, default to today's date
+    date_str = request.args.get('date', datetime.today().strftime('%Y-%m-%d'))
+    start_time = datetime.strptime(date_str, '%Y-%m-%d')
+    end_time = start_time + timedelta(days=1)
+
+    cur.execute('''SELECT temperature, time FROM tempOBS WHERE time >= %s AND time < %s AND server_id = %s''',
+                (start_time, end_time, '1'))
+
+    data = cur.fetchall()
+    response_data = {
+        "time": [record[1].strftime('%H:%M:%S') for record in data],
+        "Temperature1": [record[0] for record in data],
+        "Temperature2": [record[0] + 1 for record in data],
+        "Humidity1": [record[0] + 2 for record in data],
+        "Humidity2": [record[0] + 3 for record in data]
+    }
+    cur.close()
+    conn.close()
+    return jsonify(response_data)
+    
 
 
 def connect_db():
     conn = psycopg2.connect(database="flask_db",host="localhost",user="postgres",password="password",port="5432")
     return conn
 
+
+def insert_data():
+    conn = connect_db()
+    cur = conn.cursor()
+
+    try:
+        while True:
+            # Generate a random temperature between 20.0 and 30.0 (in Celsius)
+            temperature = round(np.random.uniform(20.0, 30.0), 2)
+            
+            # Get the current timestamp
+            timestamp = (datetime.now() + timedelta(days=1)).replace(microsecond=0)
+            
+            # Insert data into the database
+            cur.execute(
+                '''INSERT INTO tempOBS (temperature, time, server_id) VALUES (%s, %s, %s)''',
+                (temperature, timestamp, 1)
+            )
+            
+            # Commit changes to the database
+            conn.commit()
+            print(f"Inserted data - Temperature: {temperature}°C, Time: {timestamp}, Server ID: 1")
+            
+            # Wait for 5 seconds before the next insertion
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        print("Data insertion stopped.")
+        
+    except Exception as e:
+        print("An error occurred:", e)
+        
+    finally:
+        # Close the database connection
+        cur.close()
+        conn.close()
+
+# Run the function to start inserting data
+insert_data()
 
 
 
