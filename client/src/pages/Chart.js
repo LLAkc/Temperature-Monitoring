@@ -42,9 +42,6 @@ const Chart = () => {
         setRange([response.data.time.length - 10, response.data.time.length]);
         
       }
-      
-    
-      
     })
     .catch(error => {
       console.error('Error fetching data:', error);
@@ -128,31 +125,29 @@ const Chart = () => {
   };
 
   return (
-    <div className="chart-container">
-      <h1 className="title-chart">Temperature & Humidity Monitoring</h1>
-      <div className="date-picker">
-        <label>Select Date:</label>
-        <DatePicker selected={selectedDate} onChange={handleDateChange} />
+  <div className="chart-container">
+    <h1 className="title-chart">Temperature & Humidity Monitoring</h1>
+  
+    <div className="digital-monitoring">
+      <div className="monitoring-item">
+        <span>Temperature 1:</span>
+        <span className="digital-value">{chartData.Temperature1.slice(-1)[0]}°C</span>
       </div>
-      <div className="digital-monitoring">
-        <div className="monitoring-item">
-          <span>Temperature 1:</span>
-          <span className="digital-value">{chartData.Temperature1.slice(-1)[0]}°C</span>
-        </div>
-        <div className="monitoring-item">
-          <span>Temperature 2:</span>
-          <span className="digital-value">{chartData.Temperature2.slice(-1)[0]}°C</span>
-        </div>
-        <div className="monitoring-item">
-          <span>Humidity 1:</span>
-          <span className="digital-value">{chartData.Humidity1.slice(-1)[0]}%</span>
-        </div>
-        <div className="monitoring-item">
-          <span>Humidity 2:</span>
-          <span className="digital-value">{chartData.Humidity2.slice(-1)[0]}%</span>
-        </div>
+      <div className="monitoring-item">
+        <span>Temperature 2:</span>
+        <span className="digital-value">{chartData.Temperature2.slice(-1)[0]}°C</span>
       </div>
+      <div className="monitoring-item">
+        <span>Humidity 1:</span>
+        <span className="digital-value">{chartData.Humidity1.slice(-1)[0]}%</span>
+      </div>
+      <div className="monitoring-item">
+        <span>Humidity 2:</span>
+        <span className="digital-value">{chartData.Humidity2.slice(-1)[0]}%</span>
+      </div>
+    </div>
 
+    <div className="plot-wrapper">
       <Plot
         ref={plotRef}
         data={[
@@ -160,93 +155,102 @@ const Chart = () => {
             x: chartData.time,
             y: chartData.Temperature1,
             type: 'scatter',
-            mode: 'lines',
+            mode: 'lines+markers',
             name: 'Temperature 1',
-            line: { color: 'red' },
+            line: { color: 'rgba(200,200,200,1)' ,shape:'spline' },
+            marker: {color: chartData.Temperature1.map(temp => temp > 25 ? 'red' : 'green'), size: 10},
             visible: traceVisibility.Temperature1 ? true : 'legendonly'
           },
           {
             x: chartData.time,
             y: chartData.Temperature2,
             type: 'scatter',
-            mode: 'lines',
+            mode: 'lines+markers',
             name: 'Temperature 2',
-            line: { color: 'orange' },
+            line: { color: 'orange',shape:'spline' },
             visible: traceVisibility.Temperature2 ? true : 'legendonly'
           },
           {
             x: chartData.time,
             y: chartData.Humidity1,
             type: 'scatter',
-            mode: 'lines',
+            mode: 'lines+markers',
             name: 'Humidity 1',
-            line: { color: 'blue' },
+            line: { color: 'blue',shape:'spline' },
             visible: traceVisibility.Humidity1 ? true : 'legendonly'
           },
           {
             x: chartData.time,
             y: chartData.Humidity2,
             type: 'scatter',
-            mode: 'lines',
+            mode: 'lines+markers',
             name: 'Humidity 2',
-            line: { color: 'lightblue' },
+            line: { color: 'lightblue',shape:'spline' },
             visible: traceVisibility.Humidity2 ? true : 'legendonly'
           },
         ]}
         layout={{
+          paper_bgcolor: "rgba(10,7,29,1)", //background color of the chart container space
+          plot_bgcolor: "rgba(172,172,172,0)",
           width: 1000,
           height: 500,
           title: 'Temperature & Humidity Levels',
-          xaxis: {
-            title: 'Time',
-            //rangeslider: { visible: true },
-            range: range || null,  // Preserve the current range if available
-            //fixedrange:true
-          },
-          yaxis: { title: 'Values', range: [0, 50] },  // Adjust range according to expected data
-          dragmode: activeTool
+          titlefont:{color: 'rgba(255,255,255,0.75)'},
+          xaxis: { title: 'Time', range: range || null,tickfont : {color : 'rgba(255,255,255,0.75)'},color:'white', gridcolor:'rgba(255,255,255,0.25)'},
+          yaxis: { title: 'Values', range: [0, 50],tickfont : {color : 'rgba(255,255,255,0.75)'},color:'white', gridcolor:'rgba(255,255,255,0.25)' },
+          dragmode: activeTool,
+          autosize: true,
+          modebar:{color:"rgba(255,255,255,0.75)"},
+          legend: { font: { color: 'rgba(255,255,255,0.75)' }},
+          
+          
         }}
         config={{
           displayModeBar: true,
-          modeBarButtonsToRemove: [ 'resetScale2d','autoScale2d','pan2d','zoom2d'],
+          modeBarButtonsToRemove: [ 'resetScale2d','autoScale2d','pan2d','zoom2d','lasso2d','select2d'],
           displaylogo: false,
           modeBarButtonsToAdd: [
             {
-                name: 'Pan',
-                icon: Plotly.Icons.pan,
-                click: () => handleModebarClick('pan'),
-                className: activeTool === 'pan' ? 'active-modebar' : '',
-              },
-              {
-                name: 'Zoom',    
-                icon: Plotly.Icons.zoombox,
-                click: () => handleModebarClick('zoom'),
-                className: activeTool === 'zoom' ? 'active-modebar' : '',
-              },
-              {
-                name: 'Reset View',
-                icon: Plotly.Icons.autoscale,
-                click: resetView,  // Reset the layout on button click
-              }
+              name: 'Pan',
+              icon: Plotly.Icons.pan,
+              click: () => handleModebarClick('pan'),
+              className: activeTool === 'pan' ? 'active-modebar' : '',
+            },
+            {
+              name: 'Zoom',
+              icon: Plotly.Icons.zoombox,
+              click: () => handleModebarClick('zoom'),
+              className: activeTool === 'zoom' ? 'active-modebar' : '',
+            },
+            {
+              name: 'Reset View',
+              icon: Plotly.Icons.autoscale,
+              click: resetView,
+            },
           ],
         }}
-        
-        onRelayout={handleRelayout}  // Capture when the user changes the view
+        onRelayout={handleRelayout}
         onLegendClick={(event) => {
           const traceIndex = event.curveNumber;
           const traceNames = ["Temperature1", "Temperature2", "Humidity1", "Humidity2"];
           const traceName = traceNames[traceIndex];
-      
+
           if (traceName) {
             setTraceVisibility((prev) => ({
               ...prev,
-              [traceName]: !prev[traceName], // Toggle visibility
+              [traceName]: !prev[traceName],
             }));
           }
-          return false; // Prevent default behavior of toggling visibility
+          return false;
         }}
       />
+      {/* Date picker overlay */}
+      <div className="date-picker-overlay">
+        <label>Date:</label>
+        <DatePicker selected={selectedDate} onChange={handleDateChange} />
+      </div>
     </div>
+  </div>
   );
 };
 

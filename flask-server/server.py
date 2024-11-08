@@ -100,10 +100,6 @@ def get_dem_data():
         x, y = np.meshgrid(x, y)
         z = np.ones([11, 11]) 
         
-        
-
-        
-
         #z[2,8] = 20
         #z[8,2] = 20
         z[8,8] = 20

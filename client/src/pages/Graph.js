@@ -70,7 +70,7 @@ const Graph = () => {
                 }
           ]}
           layout={{
-            paper_bgcolor: "rgba(0,0,0,0.05)",
+            paper_bgcolor: "rgba(200,200,200,1)",
             title: is3D ? '3D Interpolated Heatmap' : '2D Interpolated Heatmap',
             scene: is3D
               ? {

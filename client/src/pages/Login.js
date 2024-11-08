@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';  // Importing the CSS file
+import testImage from './test.jpg';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -27,7 +28,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h2>Login</h2>
+        <h2>NextHops Monitoring System</h2>
         <form onSubmit={handleLogin}>
           <input
             type="text"
@@ -47,6 +48,7 @@ const Login = () => {
         </form>
         {error && <p className="error-message">{error}</p>}
       </div>
+      
     </div>
   );
 };
