@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';  // Importing the CSS file
-import testImage from './test.jpg';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -18,7 +17,7 @@ const Login = () => {
         localStorage.setItem('token', response.data.access_token);
         
         // Redirect to chart or dashboard page after login
-        navigate('/chart');
+        navigate('/');
       })
       .catch(error => {
         setError('Invalid username or password');

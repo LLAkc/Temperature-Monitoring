@@ -42,7 +42,35 @@ def login():
         print(e)
         return jsonify({'message': 'Error logging in'}), 400
 
+@app.route('/data', methods = ['POST'] )
+def saveData():
+    conn = connect_db()
+    cur = conn.cursor()
+    data = request.get_json()
+    temperature1 = data.get('temperature1')
+    temperature2 = data.get('temperature2')
+    humidty1 = data.get('humidity1')
+    humidty2 = data.get('humidity2')
+    time = data.get('time')
 
+    try:
+        cur.execute('''INSERT INTO tempOBS (temperature, time, sensor_id) VALUES (%s, %s, %s)''',(temperature1, time, 1))
+        cur.execute('''INSERT INTO tempOBS (temperature, time, sensor_id) VALUES (%s, %s, %s)''',(temperature2, time, 2))
+        cur.execute('''INSERT INTO humOBS (humidity, time, sensor_id) VALUES (%s, %s, %s)''',(humidty1, time, 1))
+        cur.execute('''INSERT INTO humOBS (humidity, time, sensor_id) VALUES (%s, %s, %s)''',(humidty2, time, 2))
+        
+        
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+    except BaseException as e  :
+        print(e)
+        return jsonify({'message': 'error'}), 301
+
+    return jsonify({'message': 'success'}), 201
+        
 
 
 
@@ -51,18 +79,20 @@ def login():
 def get_dem_data():
     if request.method == 'POST':
 
-        conn = connect_db()
-        cur = conn.cursor()
+        
 
         data = request.get_json()
 
         server = data.get('name')
+
         temperature = data.get('temperature')
         time = data.get('time')
         
         try:
-            cur.execute('''INSERT INTO servers (name, temperature, time) VALUES (%s, %s, %s)''',(server, temperature, time))
-            conn.commit()
+            conn = connect_db()
+            cur = conn.cursor()
+            #cur.execute('''INSERT INTO servers (name, temperature, time) VALUES (%s, %s, %s)''',(server, temperature, time))
+            #conn.commit()
 
             cur.close()
             conn.close()
@@ -78,22 +108,10 @@ def get_dem_data():
         conn = connect_db()
         cur = conn.cursor()
         start_time = datetime.combine(datetime.today(), datetime.min.time())
-        '''
-        for i in range(24 * 60):  # 1440 minutes in a day
-            x =  round(np.random.uniform(low=20.0, high=30.0),2)
-            timestamp = start_time + timedelta(minutes=i)'''
             
         
             
-        
-        cur.execute('''SELECT servers.name, tempOBS.temperature, 
-                    tempOBS.time FROM servers JOIN tempOBS on servers.id = tempOBS.server_id''')
-        tempValues = cur.fetchone()
-        conn.commit()
-        cur.close()
-        conn.close()
-        print(tempValues[1])
-        
+
         # Original grid data
         x = np.arange(0, 11, 1)
         y = np.arange(0, 11, 1)
@@ -139,17 +157,30 @@ def Chart():
     date_str = request.args.get('date', datetime.today().strftime('%Y-%m-%d'))
     start_time = datetime.strptime(date_str, '%Y-%m-%d')
     end_time = start_time + timedelta(days=1)
+    print(start_time,end_time)
 
-    cur.execute('''SELECT temperature, time FROM tempOBS WHERE time >= %s AND time < %s AND server_id = %s''',
+    cur.execute('''SELECT temperature, time FROM tempOBS WHERE time >= %s AND time < %s AND sensor_id = %s''',
                 (start_time, end_time, '1'))
+    data1 = cur.fetchall()
 
-    data = cur.fetchall()
+    cur.execute('''SELECT temperature, time FROM tempOBS WHERE time >= %s AND time < %s AND sensor_id = %s''',
+                (start_time, end_time, '2'))
+    data2 = cur.fetchall()
+
+    cur.execute('''SELECT humidity, time FROM humOBS WHERE time >= %s AND time < %s AND sensor_id = %s''',
+                (start_time, end_time, '1'))
+    data3 = cur.fetchall()
+
+    cur.execute('''SELECT humidity, time FROM humOBS WHERE time >= %s AND time < %s AND sensor_id = %s''',
+                (start_time, end_time, '2'))
+    data4 = cur.fetchall()
+
     response_data = {
-        "time": [record[1].strftime('%H:%M:%S') for record in data],
-        "Temperature1": [record[0] for record in data],
-        "Temperature2": [record[0] + 1 for record in data],
-        "Humidity1": [record[0] + 2 for record in data],
-        "Humidity2": [record[0] + 3 for record in data]
+        "time": [record[1].strftime('%H:%M:%S') for record in data1],
+        "Temperature1": [record[0] for record in data1],
+        "Temperature2": [record[0] for record in data2],
+        "Humidity1": [record[0] for record in data3],
+        "Humidity2": [record[0] for record in data4]
     }
     cur.close()
     conn.close()
@@ -198,42 +229,4 @@ def insert_data():
         cur.close()
         conn.close()
 
-# Run the function to start inserting data
-insert_data()
 
-
-
-
-
-sensors = [
-    {"id": 1, "x": 1, "y": 1, "temperature": 22},
-    {"id": 2, "x": 4, "y": 3, "temperature": 27}
-]
-
-def interpolate_temperature(x, y):
-    # Simple bilinear interpolation for demonstration
-    x1, y1, t1 = sensors[0]['x'], sensors[0]['y'], sensors[0]['temperature']
-    x2, y2, t2 = sensors[1]['x'], sensors[1]['y'], sensors[1]['temperature']
-    weight1 = 1 / (np.sqrt((x - x1)**2 + (y - y1)**2) + 1e-5)
-    weight2 = 1 / (np.sqrt((x - x2)**2 + (y - y2)**2) + 1e-5)
-    temperature = (t1 * weight1 + t2 * weight2) / (weight1 + weight2)
-    return temperature
-
-@app.route('/heatmap', methods=['GET'])
-def get_heatmap_data():
-    grid_size = 5  # Define grid size for the room
-    heatmap_data = []
-    
-    for x in range(grid_size):
-        row = []
-        for y in range(grid_size):
-            temperature = interpolate_temperature(x, y)
-            row.append({"x": x, "y": y, "temperature": temperature})
-        heatmap_data.append(row)
-    
-    print(heatmap_data)
-    return jsonify(heatmap_data)
-
-@app.route('/sensors', methods=['GET'])
-def get_sensors():
-    return jsonify(sensors)

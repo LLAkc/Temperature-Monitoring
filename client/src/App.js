@@ -9,6 +9,7 @@ import NoPage from './pages/NoPage'
 import Navbar from './components/Navbar';
 import './App.css'
 import Heatmap from './pages/Heatmap';
+import Dashboard from './pages/Dashboard';
 
 
 const App = () => {
@@ -19,9 +20,10 @@ const App = () => {
       <Router>
         <Navbar/>
         <Routes>
-          <Route path="/" element={token ? <Navigate to="/chart" /> : <Navigate to="/login" />} />
+          
           <Route path="/login" element={<Login/>} />
           <Route path="/heatmap" element={<Heatmap/>} />
+          <Route path="/" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
           <Route path="/chart" element={<ProtectedRoute><Chart/></ProtectedRoute>}/>
           <Route  path="/graph" element={<ProtectedRoute><Graph/></ProtectedRoute>}/>
           <Route  path="/logout" element={<ProtectedRoute><Logout/></ProtectedRoute>}/>

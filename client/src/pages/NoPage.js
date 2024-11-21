@@ -5,7 +5,7 @@ const NoPage = () => {
 
 
     return(
-        <div>
+        <div className="container">
             <h2>
                 404 NOT FOUND
             </h2>

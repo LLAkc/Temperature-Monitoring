@@ -11,7 +11,8 @@ const Chart = () => {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const [chartData, setChartData] = useState({ Temperature1: [],Temperature2: [],Humidity1: [],Humidity2: [], time: []});
-  const [range, setRange] = useState([0, 0]);
+  const [rangeX, setRangeX] = useState([0, 0]);
+  const [rangeY, setRangeY] = useState([15, 45]);
   const [activeTool, setActiveTool] = useState('zoom');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isUserInteracting, setIsUserInteracting] = useState(false);  // Track user interaction
@@ -38,10 +39,18 @@ const Chart = () => {
         Humidity2: response.data.Humidity2,
         time: response.data.time,
       });
-      if (response.data.time.length > 10 && !isUserInteracting) {
-        setRange([response.data.time.length - 10, response.data.time.length]);
-        
+      if (response.data.time.length > 15 && !isUserInteracting) {
+        setRangeX([response.data.time.length - 15, response.data.time.length]); 
       }
+      //if (!isUserInteracting) {
+        const allValues = [response.data.Temperature1, response.data.Temperature2, response.data.Humidity1, response.data.Humidity2];
+        if (allValues.length > 0) {
+          const minY = Math.min(...allValues) - 2;
+          const maxY = Math.max(...allValues) + 2;
+          setRangeY([minY, maxY]);
+        }
+      //}
+       console.log(rangeY)
     })
     .catch(error => {
       console.error('Error fetching data:', error);
@@ -68,49 +77,16 @@ const Chart = () => {
     fetchData(date);
   };
 
-/*
-  useEffect(() => {
-    const interval = setInterval(() => {
-      axios.get('http://localhost:5000/chart', {headers: {Authorization: `Bearer ${token}`}})
-        .then(response => {
-          setChartData(prevData => ({
-            
-            
-          }));
-          
-          setRange(([first, second]) => {
-            if (second > 10) {
-              return [first + 1, second + 1]; // Increase the first value until it reaches 10
-            } else {
-              return [first, second + 1]; // Once the first reaches 10, start increasing the second
-            }
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching data:', error);
-          // If error status is 401, display alert and navigate to login
-          if (error.response && error.response.status === 401) {
-            window.alert('Session expired. Please log in again.');
-            localStorage.removeItem('token'); 
-            navigate('/login');  // Redirect to login page after clicking Ok
-          }
-        });
-      
-    }, 3000);
-    
-    return () => clearInterval(interval);
-  }, []);*/
-
   const handleRelayout = (event) => {
     if (event['xaxis.range[0]'] && event['xaxis.range[1]']) {
       setIsUserInteracting(true);
-      setRange([event['xaxis.range[0]'], event['xaxis.range[1]']]);  // Store current range
+      setRangeX([event['xaxis.range[0]'], event['xaxis.range[1]']]);  // Store current range
     }
   };
 
   const handleModebarClick = (tool) => {
     setActiveTool(tool);  // Store the selected tool
-    //setIsUserInteracting(true);
+    
     if (plotRef.current) {
       Plotly.relayout(plotRef.current.el, { dragmode: tool });  // Apply the selected tool
     }
@@ -119,7 +95,7 @@ const Chart = () => {
   const resetView = () => {
     setIsUserInteracting(false);
     if (chartData.time.length > 10) {
-      setRange([chartData.time.length - 10, chartData.time.length]);
+      setRangeX([chartData.time.length - 10, chartData.time.length]);
       
     }
   };
@@ -196,8 +172,8 @@ const Chart = () => {
           height: 500,
           title: 'Temperature & Humidity Levels',
           titlefont:{color: 'rgba(255,255,255,0.75)'},
-          xaxis: { title: 'Time', range: range || null,tickfont : {color : 'rgba(255,255,255,0.75)'},color:'white', gridcolor:'rgba(255,255,255,0.25)'},
-          yaxis: { title: 'Values', range: [0, 50],tickfont : {color : 'rgba(255,255,255,0.75)'},color:'white', gridcolor:'rgba(255,255,255,0.25)' },
+          xaxis: { title: 'Time', range: rangeX || null,tickfont : {color : 'rgba(255,255,255,0.75)'},color:'white', gridcolor:'rgba(255,255,255,0.25)'},
+          yaxis: { title: 'Values', range: rangeY,tickfont : {color : 'rgba(255,255,255,0.75)'},color:'white', gridcolor:'rgba(255,255,255,0.25)' },
           dragmode: activeTool,
           autosize: true,
           modebar:{color:"rgba(255,255,255,0.75)"},
@@ -230,6 +206,7 @@ const Chart = () => {
           ],
         }}
         onRelayout={handleRelayout}
+        
         onLegendClick={(event) => {
           const traceIndex = event.curveNumber;
           const traceNames = ["Temperature1", "Temperature2", "Humidity1", "Humidity2"];
@@ -247,7 +224,10 @@ const Chart = () => {
       {/* Date picker overlay */}
       <div className="date-picker-overlay">
         <label>Date:</label>
-        <DatePicker selected={selectedDate} onChange={handleDateChange} />
+        <DatePicker selected={selectedDate} onChange={handleDateChange}
+          dateFormat="dd-MM-yyyy"
+        
+        />
       </div>
     </div>
   </div>

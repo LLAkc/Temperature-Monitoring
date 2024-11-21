@@ -4,3 +4,6 @@ flask_cors
 psycopg2
 python-dotenv
 Flask-JWT-Extended
+cur.execute('''INSERT INTO servers (name, temperature, time) VALUES (%s, %s, %s)''',(server, temperature2, time))
+        cur.execute('''INSERT INTO servers (name, temperature, time) VALUES (%s, %s, %s)''',(server, humidity1, time))
+        cur.execute('''INSERT INTO servers (name, temperature, time) VALUES (%s, %s, %s)''',(server, humidity2, time))
