@@ -70,6 +70,35 @@ def saveData():
         return jsonify({'message': 'error'}), 301
 
     return jsonify({'message': 'success'}), 201
+
+@app.route('/data2', methods = ['POST'] )
+def saveData2():
+    conn = connect_db()
+    cur = conn.cursor()
+    data = request.get_json()
+    temperature1 = data.get('temperature1')
+    temperature2 = data.get('temperature2')
+    humidty1 = data.get('humidity1')
+    humidty2 = data.get('humidity2')
+    time = data.get('time')
+
+    try:
+        cur.execute('''INSERT INTO tempOBS (temperature, time, sensor_id) VALUES (%s, %s, %s)''',(temperature1, time, 1))
+        cur.execute('''INSERT INTO tempOBS (temperature, time, sensor_id) VALUES (%s, %s, %s)''',(temperature2, time, 2))
+        cur.execute('''INSERT INTO humOBS (humidity, time, sensor_id) VALUES (%s, %s, %s)''',(humidty1, time, 1))
+        cur.execute('''INSERT INTO humOBS (humidity, time, sensor_id) VALUES (%s, %s, %s)''',(humidty2, time, 2))
+        
+        
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+    except BaseException as e  :
+        print(e)
+        return jsonify({'message': 'error'}), 301
+
+    return jsonify({'message': 'success'}), 201
         
 
 
@@ -77,73 +106,39 @@ def saveData():
 @app.route('/dem-data', methods=['GET','POST'])
 @jwt_required()
 def get_dem_data():
-    if request.method == 'POST':
+    
+    #values in database
+    conn = connect_db()
+    cur = conn.cursor()
+    start_time = datetime.combine(datetime.today(), datetime.min.time())
+     
 
-        
+    # Original grid data
+    x = np.arange(0, 11, 1)
+    y = np.arange(0, 11, 1)
+    x, y = np.meshgrid(x, y)
+    z = np.ones([11, 11]) 
+    
+    #z[2,8] = 20
+    #z[8,2] = 20
+    z[8,8] = 20
+    z[2,2] = 10
 
-        data = request.get_json()
-
-        server = data.get('name')
-
-        temperature = data.get('temperature')
-        time = data.get('time')
-        
-        try:
-            conn = connect_db()
-            cur = conn.cursor()
-            #cur.execute('''INSERT INTO servers (name, temperature, time) VALUES (%s, %s, %s)''',(server, temperature, time))
-            #conn.commit()
-
-            cur.close()
-            conn.close()
-
-        except BaseException as e  :
-            print(e)
-            return jsonify({'message': 'error'}), 301
-
-        return jsonify({'message': 'success'}), 201 
-        
-    else:
-        #values in database
-        conn = connect_db()
-        cur = conn.cursor()
-        start_time = datetime.combine(datetime.today(), datetime.min.time())
-            
-        
-            
-
-        # Original grid data
-        x = np.arange(0, 11, 1)
-        y = np.arange(0, 11, 1)
-        x, y = np.meshgrid(x, y)
-        z = np.ones([11, 11]) 
-        
-        #z[2,8] = 20
-        #z[8,2] = 20
-        z[8,8] = 20
-        z[2,2] = 10
-        '''
-        for j in range(11):
-            for i in range(11):
-                z[j,i] = z[8,8]/np.square(np.abs((12-i))+np.abs((12-j)))
-                print(z[j,i])
-        print(z)'''
-
-        # Interpolated grid data
-        xnew = np.linspace(0, 10, num=100)
-        ynew = np.linspace(0, 10, num=100)
-        tck = interpolate.bisplrep(x.ravel(), y.ravel(), z.ravel(), s=750)
-        znew = interpolate.bisplev(xnew, ynew, tck)
-        #znew += 20- znew.max()
-        xnew, ynew = np.meshgrid(xnew, ynew)
+    # Interpolated grid data
+    xnew = np.linspace(0, 10, num=100)
+    ynew = np.linspace(0, 10, num=100)
+    tck = interpolate.bisplrep(x.ravel(), y.ravel(), z.ravel(), s=750)
+    znew = interpolate.bisplev(xnew, ynew, tck)
+    #znew += 20- znew.max()
+    xnew, ynew = np.meshgrid(xnew, ynew)
 
 
-        # Send interpolated data to frontend
-        return jsonify({
-            'x': xnew.tolist(),
-            'y': ynew.tolist(),
-            'z': znew.tolist()
-        })
+    # Send interpolated data to frontend
+    return jsonify({
+        'x': xnew.tolist(),
+        'y': ynew.tolist(),
+        'z': znew.tolist()
+    })
 
 
 
@@ -175,6 +170,8 @@ def Chart():
                 (start_time, end_time, '2'))
     data4 = cur.fetchall()
 
+    time1 = datetime.now()
+    current_time_str = time1.strftime("%Y-%m-%d %H:%M:%S")
     response_data = {
         "time": [record[1].strftime('%H:%M:%S') for record in data1],
         "Temperature1": [record[0] for record in data1],
@@ -192,41 +189,5 @@ def connect_db():
     conn = psycopg2.connect(database="flask_db",host="localhost",user="postgres",password="password",port="5432")
     return conn
 
-
-def insert_data():
-    conn = connect_db()
-    cur = conn.cursor()
-
-    try:
-        while True:
-            # Generate a random temperature between 20.0 and 30.0 (in Celsius)
-            temperature = round(np.random.uniform(20.0, 30.0), 2)
-            
-            # Get the current timestamp
-            timestamp = (datetime.now() + timedelta(days=1)).replace(microsecond=0)
-            
-            # Insert data into the database
-            cur.execute(
-                '''INSERT INTO tempOBS (temperature, time, server_id) VALUES (%s, %s, %s)''',
-                (temperature, timestamp, 1)
-            )
-            
-            # Commit changes to the database
-            conn.commit()
-            print(f"Inserted data - Temperature: {temperature}°C, Time: {timestamp}, Server ID: 1")
-            
-            # Wait for 5 seconds before the next insertion
-            time.sleep(1)
-
-    except KeyboardInterrupt:
-        print("Data insertion stopped.")
-        
-    except Exception as e:
-        print("An error occurred:", e)
-        
-    finally:
-        # Close the database connection
-        cur.close()
-        conn.close()
 
 

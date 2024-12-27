@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './Login.css';  // Importing the CSS file
+import './Login.css'; 
+import { jwtDecode } from 'jwt-decode'; 
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    const isTokenExpired = (token) => {
+        try {
+          const decodedToken = jwtDecode(token);  // Decode the token to get its payload
+          const currentTime = Date.now() / 1000;  // Get current time in seconds
+    
+          // Check if the token is expired by comparing the exp field with current time
+          return decodedToken.exp < currentTime;
+        } catch (error) {
+          console.error('Invalid token:', error);
+          return true;  // If decoding fails, consider the token invalid/expired
+        }
+      };
+
+    if(token || !isTokenExpired(token)){
+      return navigate('/');
+    }
+  })
 
   const handleLogin = (e) => {
     e.preventDefault();

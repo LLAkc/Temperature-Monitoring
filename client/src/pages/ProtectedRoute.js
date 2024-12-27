@@ -1,7 +1,7 @@
 // src/ProtectedRoute.js
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';  // Fix import here
+import { jwtDecode } from 'jwt-decode'; 
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -24,6 +24,8 @@ const ProtectedRoute = ({ children }) => {
     // If no token or token is expired, redirect to login
     return <Navigate to="/login" replace />;
   }
+
+  
 
   // If token is valid, render the child components (protected pages)
   return children;

@@ -51,38 +51,68 @@
 .plot-wrapper {
   position: relative;
   width: 100%;
-  max-width: 1050px;
+  max-width: 1000px;
   min-width: 1050px;
   padding: 20px;
   border-radius: 10px;
   background-color: #0a071d; /* Dark background to complement teal */
   box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  display: flex;
+  flex-direction: column; /* Arrange children in a column */
+  gap: 20px; /* Add spacing between rows */
 }
 
-.date-picker-overlay {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 1;
-  background-color: #0a071d; /* Transparent overlay with dark teal tone */
-  padding: 10px 15px;
+.controls {
+  display: flex;
+  flex-direction: row; /* Arrange controls in a row */
+  justify-content: center; /* Spread controls across the available width */
+  align-items: center; /* Align items vertically */
+  gap: 15px; /* Space between control elements */
+}
+
+.plot {
+  position: relative;
+
+}
+
+/* Adjust individual components inside .controls */
+
+.date-picker-overlay,
+.server-selection-overlay,
+.time-selection-overlay,
+.interval-selection-overlay {
   
-  
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px 20px;
 }
 
-.date-picker-overlay label {
-  color: #d8d8d8; /* Light color for label text */
-  font-weight: bold;
-  margin-right: 8px;
-}
-
-.date-picker-overlay input {
-  vertical-align: center;
-  background-color: #0a071d; /* Dark input field */
+.date-picker-overlay input,
+.server-selection-overlay select,
+.time-selection-overlay select,
+.interval-selection-overlay select {
+  text-align: center;
+  background-color: #0a071d; /* Dark field */
   border: 2px solid #ffffff; /* Border to match the teal theme */
   color: #c5c5c5;
   border-radius: 50px;
-  padding: 5px 10px;
+  padding: 5px 5px;
   outline: none;
-  
+  max-width: 150px;
+  max-height: 30px;
 }
+
+.date-picker-overlay label,
+.server-selection-overlay label,
+.time-selection-overlay label,
+.interval-selection-overlay label {
+  color: #d8d8d8; /* Light color for label text */
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+
+
+
+

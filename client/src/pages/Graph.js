@@ -11,7 +11,7 @@ const Graph = () => {
   const navigate = useNavigate();  // To handle navigation
 
   useEffect(() => {
-    //const interval = setInterval(() => {
+    const interval = setInterval(() => {
       axios.get('http://localhost:5000/dem-data', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -27,9 +27,9 @@ const Graph = () => {
           console.error('Error fetching data:', error);
         }
       });
-    //}, 3000);  // Update every 3 seconds (or adjust the interval as needed)
+    }, 3000);  // Update every 3 seconds (or adjust the interval as needed)
 
-    //return () => clearInterval(interval);  // Cleanup interval on component unmount
+    return () => clearInterval(interval);  // Cleanup interval on component unmount
   }, [token]);
 
   const toggleView = () => {
